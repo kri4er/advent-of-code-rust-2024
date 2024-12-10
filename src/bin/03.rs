@@ -24,7 +24,7 @@ pub fn part_two(input: &str) -> Option<u32> {
     let re = Regex::new(r"(mul\(([0-9]+),([0-9]+)\)|do\(\)|don't\(\))").unwrap();
     let mut enabled = true;
 
-    let matches: Vec<(i32, i32)> = re
+    let result: i32 = re
         .captures_iter(input)
         .filter(|cap|{
             if cap.get(0).unwrap().as_str().as_bytes() == b"do()" {
@@ -38,14 +38,10 @@ pub fn part_two(input: &str) -> Option<u32> {
         .map(|cap| {
             let x: i32 = cap[2].parse().unwrap();
             let y: i32 = cap[3].parse().unwrap();
-            (x, y)
+            x*y
         })
-        .collect();
+        .sum();
 
-    let result = matches.into_iter()
-        .fold(0, |acc, (x, y)|
-            acc + (x * y)
-            );
     Some(result as u32)
 }
 

@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{cmp::Ordering, collections::HashSet};
 
 use itertools::Itertools;
 
@@ -47,7 +47,6 @@ pub fn part_one(input: &str) -> Option<u32> {
 pub fn part_two(input: &str) -> Option<u32> {
     let data = input.split_once("\n\n").unwrap();
     let rules:HashSet<(&str, &str)> = data.0.lines()
-    //let rules:Vec<(&str, &str)> = data.0.lines()
         .map(|l| {
             let (f, s) = l.split_once('|').unwrap();
             (f, s)
@@ -55,12 +54,12 @@ pub fn part_two(input: &str) -> Option<u32> {
         )
         .collect();
 
-    let updates = data.1.lines()
+    let mut updates:Vec<Vec<_>> = data.1.lines()
         .map(|l| l.split(',').collect_vec())
         .collect_vec();
 
     //println!("LOGME: updates: {:?}", &updates);
-    let result:i32 = updates.iter()
+    let result:i32 = updates.into_iter()
         .filter(|update| {
             update.iter()
                 .tuple_windows()
@@ -71,7 +70,19 @@ pub fn part_two(input: &str) -> Option<u32> {
                     } else {
                         Ok(1)
                     }
-                }).is_ok()
+                }).is_err()
+        })
+        .map(|update| {
+            let mut sorted = update.clone();
+            sorted.sort_by(|&l, &r| {
+                if rules.contains(&(l, r)) {
+                    return Ordering::Less;
+                } else if rules.contains(&(r, l)) {
+                    return Ordering::Greater;
+                }
+                return Ordering::Equal;
+            });
+            sorted
         })
         .map(|update| update.get(update.len()/2)
             .unwrap()

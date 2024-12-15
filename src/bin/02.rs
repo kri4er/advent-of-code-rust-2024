@@ -31,13 +31,13 @@ fn is_safe(path: &Vec<i64>) -> bool {
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let result:u32 = input.lines()
+    let result:usize = input.lines()
         .map(|line|
             line.split_whitespace()
             .map(|num| num.parse::<i64>().unwrap()).collect::<Vec<i64>>())
-        .map(|parsed_slope| if is_safe(&parsed_slope) {1} else {0})
-        .sum();
-    Some(result)
+        .filter(|parsed_slope| is_safe(&parsed_slope))
+        .count();
+    Some(result as u32)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {

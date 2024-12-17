@@ -69,8 +69,6 @@ fn next(iter:(Point, usize), m:&HashMap<Point, char>, obstacle_loc: &Point)
     let next_pos = loc.add(&DIRS[dir]);
     let next_loc = m.get(&next_pos).unwrap_or(&'E');
     if &next_pos == obstacle_loc || next_loc == &'#' {
-        let next_pos = loc.add(&DIRS[turn(dir)]);
-        //return Some((next_pos, turn(dir)));
         return Some((loc, turn(dir)));
     } else if next_loc == &'E' {
         return None;
@@ -87,8 +85,6 @@ fn is_looped(m:&HashMap<Point, char>, start_pos:Point, obstacle_loc: &Point) -> 
 
         fast_pos = next(fast_pos.unwrap(), m, obstacle_loc);
         fast_pos = next(fast_pos.unwrap(), m, obstacle_loc);
-        //println!("LOGME: slow {:?}, fast: {:?} for obstacle: {:?}", slow_pos, fast_pos, obstacle_loc);
-        //if slow_pos.unwrap().0 == fast_pos.unwrap_or((Point(-10000, -10000), 0)).0 {
         if slow_pos == fast_pos {
             return true;
         }
@@ -102,40 +98,28 @@ pub fn part_two(input: &str) -> Option<u32> {
 
     let m:HashMap<Point, char> = vec_to_hashmap(&m);
 
-    let mut current_pos: Point = m
+    let starting_pos: Point = m
         .iter()
         .find_map(|(&key, &val)| if val == '^' { Some(key) } else { None })
         .unwrap();
 
-    let starting_point = current_pos.clone();
-
+    let starting_point = starting_pos.clone();
     let mut path:HashSet<Point> = HashSet::new();
-
-    let mut active_dir:usize = 0;
-    loop {
-        let next_pos = current_pos.add(&DIRS[active_dir]);
-        let next_loc = m.get(&next_pos).unwrap_or(&'E');
-        if  next_loc == &'E' {
-            path.insert(current_pos.clone());
-            break;
-        } else if next_loc == &'#' {
-            active_dir = turn(active_dir);
-        } else {
-            path.insert(current_pos.clone());
-            current_pos = next_pos;
+    let mut pos = Some((starting_pos.clone(), 0));
+    while pos.is_some() {
+        pos = next(pos.unwrap(), &m, &Point(-1,-1));
+        if pos.is_some() {
+            path.insert(pos.unwrap().0);
         }
     }
-    let mut options = path.len().clone();
     let result = path.iter()
         .filter(|&obstacle_loc| {
-            options = options - 1;
             obstacle_loc != &starting_point && is_looped(&m, starting_point, obstacle_loc)
         })
         .count();
 
 
     Some(result as u32)
-
 }
 
 #[cfg(test)]

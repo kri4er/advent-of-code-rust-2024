@@ -85,7 +85,45 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let m = input.lines()
+        .collect::<Vec<_>>();
+
+
+    let m:HashMap<Point, char> = vec_to_hashmap(&m);
+    let anthenas:Vec<Point> = m.iter()
+        .filter(|&(_k, v)| *v != '.'.as_char())
+        .map(|(k, _v)| k.clone())
+        .collect();
+
+    let mut antinodes = HashSet::<Point>::new();
+
+    for i in 0..anthenas.len() {
+        for j in i+1..anthenas.len() {
+            let (ap0, ap1) = (anthenas[i], anthenas[j]);
+            //skip if different frequency
+            if m.get(&ap0) != m.get(&ap1) {
+                continue;
+            }
+
+            let delta = ap0.clone() - ap1.clone(); // vector from ps1 to ps0
+            let mut candidate = ap0.clone();
+            loop {
+                if !(m.contains_key(&candidate)) { break; }
+                antinodes.insert(candidate.clone());
+                candidate = candidate.clone() + delta.clone();
+            }
+
+            candidate = ap1.clone();
+            loop {
+                if !(m.contains_key(&candidate)) { break; }
+                antinodes.insert(candidate.clone());
+                candidate = candidate.clone() - delta.clone();
+            }
+        }
+    }
+
+    Some(antinodes.len() as u32)
+
 }
 
 #[cfg(test)]
@@ -100,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        assert_eq!(result, Some(14));
     }
 }

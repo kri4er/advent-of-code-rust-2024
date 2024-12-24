@@ -84,8 +84,35 @@ pub fn part_one(input: &str) -> Option<usize> {
 
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+fn dfs2(m:&HashMap<Point, usize>, point: Point) -> usize {
+    let mut result = 0;
+
+    for next in DIRS.map(|dir| point.clone() + dir.clone()) {
+        if m.contains_key(&next) && m[&point] + 1 == m[&next] {
+            if m[&next] == 9 {
+                result += 1;
+            } else  {
+                result += dfs2(&m, next);
+            }
+        }
+    }
+    result
+}
+
+pub fn part_two(input: &str) -> Option<usize> {
+    let m = input.lines()
+        .collect::<Vec<_>>();
+
+    let m:HashMap<Point, usize> = vec_to_hashmap(&m);
+
+    let result = m.iter().fold(0, |acc, p| {
+        acc + if *p.1 == 0 {
+            let res = dfs2(&m, p.0.clone());
+            res
+        } else { 0 }
+    });
+
+    Some(result)
 }
 
 #[cfg(test)]
@@ -101,6 +128,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(81));
     }
 }

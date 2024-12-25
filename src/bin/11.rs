@@ -42,12 +42,13 @@ fn dfs_count(num:usize, blink_remaining:usize, memo:&mut HashMap<(usize, usize),
         let result = match num {
             0 => dfs_count(1, blink_remaining - 1, memo),
             _ => {
-                let number_as_str = num.to_string();
-                if number_as_str.len() % 2 == 1 || num < 10 {
+                //let number_as_str = num.to_string();
+                if !even_digits(num) || num < 10 {
                     dfs_count(num * 2024, blink_remaining - 1, memo)
                 } else {
-                    let left = number_as_str[0..number_as_str.len() / 2].parse().unwrap();
-                    let right = number_as_str[number_as_str.len() / 2..number_as_str.len()].parse().unwrap();
+                    //let left = number_as_str[0..number_as_str.len() / 2].parse().unwrap();
+                    //let right = number_as_str[number_as_str.len() / 2..number_as_str.len()].parse().unwrap();
+                    let (left, right) = split_number(num);
                     dfs_count(left, blink_remaining - 1, memo) + dfs_count(right, blink_remaining - 1, memo)
                 }
             }
@@ -57,9 +58,6 @@ fn dfs_count(num:usize, blink_remaining:usize, memo:&mut HashMap<(usize, usize),
     }
 }
 
-//since we do not need actual numbers to process them, we can make a dfs algorithm to return count
-//based on the number
-//fn solve_dfs(data: &[usize], blink_number:usize) -> u64 {
 fn solve_dfs(data: &[usize], blink_number:usize) -> usize {
     let mut memo:HashMap<(usize, usize), u64> = HashMap::new();
     data.into_iter()
@@ -69,16 +67,74 @@ fn solve_dfs(data: &[usize], blink_number:usize) -> usize {
         }
         )
 }
+fn solve_like_master_tought_me(data: Vec<usize>, iterations: usize) -> u64 {
+    // Initialize frequency map
+    let mut map: HashMap<usize, u64> = HashMap::new();
+    for &val in &data {
+        *map.entry(val).or_insert(0) += 1;
+    }
+
+    // Process iterations
+    for _ in 0..iterations {
+        let mut next_map = HashMap::new();
+
+        for (&n, &count) in &map {
+            if n == 0 {
+                *next_map.entry(1).or_insert(0) += count;
+            } else if even_digits(n) {
+                let (left, right) = split_number(n);
+                *next_map.entry(left).or_insert(0) += count;
+                *next_map.entry(right).or_insert(0) += count;
+            } else {
+                *next_map.entry(n * 2024).or_insert(0) += count;
+            }
+        }
+
+        map = next_map;
+    }
+
+    // Calculate the total count
+    map.values().sum()
+}
+
+// Check if a number has even number of digits
+fn even_digits(number: usize) -> bool {
+    digits_len(number) % 2 == 0
+}
+
+// Calculate number of digits in a number
+fn digits_len(mut number: usize) -> usize {
+    if number == 0 {
+        return 1;
+    }
+    let mut len = 0;
+    while number > 0 {
+        len += 1;
+        number /= 10;
+    }
+    len
+}
+
+// Split the number into two halves
+fn split_number(number: usize) -> (usize, usize) {
+    let len = digits_len(number);
+    let half_len = len / 2;
+    let divisor = 10_i32.pow(half_len as u32) as usize;
+
+    (number / divisor, number % divisor)
+}
 
 pub fn part_one(input: &str) -> Option<usize> {
     let data = input.split_whitespace().map(|number| number.parse::<usize>().unwrap()).collect_vec();
-    Some(solve_brute(data.as_ref(), 25))
+    //Some(solve_brute(data.as_ref(), 25))
+    Some(solve_dfs(data.as_ref(), 75))
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
     let data = input.split_whitespace().map(|number| number.parse::<usize>().unwrap()).collect_vec();
     //Some(solve_dfs(data.as_ref(), 25))
-    Some(solve_dfs(data.as_ref(), 75))
+    //Some(solve_dfs(data.as_ref(), 75))
+    Some(solve_like_master_tought_me(data, 75) as usize)
 }
 
 #[cfg(test)]

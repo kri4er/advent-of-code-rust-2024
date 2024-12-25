@@ -126,15 +126,14 @@ fn split_number(number: usize) -> (usize, usize) {
 
 pub fn part_one(input: &str) -> Option<usize> {
     let data = input.split_whitespace().map(|number| number.parse::<usize>().unwrap()).collect_vec();
-    //Some(solve_brute(data.as_ref(), 25))
-    Some(solve_dfs(data.as_ref(), 75))
+    Some(solve_brute(data.as_ref(), 25))
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
     let data = input.split_whitespace().map(|number| number.parse::<usize>().unwrap()).collect_vec();
     //Some(solve_dfs(data.as_ref(), 25))
-    //Some(solve_dfs(data.as_ref(), 75))
-    Some(solve_like_master_tought_me(data, 75) as usize)
+    Some(solve_dfs(data.as_ref(), 75))
+    //Some(solve_like_master_tought_me(data, 75) as usize)
 }
 
 #[cfg(test)]
@@ -160,6 +159,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, Some(198075));
+        assert_eq!(result, Some(65601038650482));
     }
 }

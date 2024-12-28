@@ -1,6 +1,7 @@
 use advent_of_code::template::commands::{all, download, read, scaffold, solve, time};
 use args::{parse, AppArguments};
 
+
 #[cfg(feature = "today")]
 use advent_of_code::template::Day;
 #[cfg(feature = "today")]

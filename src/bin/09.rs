@@ -57,7 +57,92 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<i64> {
-    None
+
+    let disk = input.trim().chars()
+        .map(|ch| ch.to_digit(10).unwrap() as usize)
+        .collect::<Vec<usize>>();
+
+    let mut block = 0;
+    let mut checksum = 0;
+    let mut free: Vec<_> = (0..10).map(|_| Vec::with_capacity(1_100)).collect();
+
+    // Build a min-heap (leftmost free block first) where the size of each block is
+    // implicit in the index of the array.
+    for (index, &size) in disk.iter().enumerate() {
+        if index % 2 == 1 && size > 0 {
+            free[size].push(block);
+        }
+
+        block += size;
+    }
+
+    // Add sentinel value and reverse vecs so that smallest blocks are last.
+    for i in 0..10 {
+        free[i].push(block);
+        free[i].reverse();
+    }
+
+    for (index, &size) in disk.iter().enumerate().rev() {
+        block -= size;
+
+        // Count any previous free blocks to decrement block offset correctly.
+        if index % 2 == 1 {
+            continue;
+        }
+
+        // Find the leftmost free block that can fit the file (if any).
+        let mut next_block = block;
+        let mut next_index = usize::MAX;
+
+        for i in size..free.len() {
+            let top = free[i].len() - 1;
+            let first = free[i][top];
+
+            if first < next_block {
+                next_block = first;
+                next_index = i;
+            }
+        }
+
+        // We can make smaller free block from bigger blocks but not the other way around.
+        // As an optimization if all blocks of the biggest size are after our position then
+        // we can ignore them.
+        if !free.is_empty() {
+            let biggest = free.len() - 1;
+            let top = free[biggest].len() - 1;
+
+            if free[biggest][top] > block {
+                free.pop();
+            }
+        }
+
+        // Update the checksum with the file's location (possibly unchanged).
+        let id = index / 2;
+        let extra = next_block * size + MEMO[size];
+        checksum += id * extra;
+
+        // If we used a free block, remove then add back any leftover space.
+        if next_index != usize::MAX {
+            free[next_index].pop();
+
+            // Insert the new smaller block into the correct location.
+            // Most frequently this is directly at the end of the vector so even though this
+            // is technically `O(n)`, in practice it's faster than a real heap.
+            let to = next_index - size;
+            if to > 0 {
+                let mut i = free[to].len();
+                let value = next_block + size;
+
+                while free[to][i - 1] < value {
+                    i -= 1;
+                }
+
+                free[to].insert(i, value);
+            }
+        }
+    }
+
+    Some(checksum as i64)
 }
 
 #[cfg(test)]
@@ -78,6 +163,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(2858));
     }
 }
